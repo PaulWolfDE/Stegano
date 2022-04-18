@@ -1,8 +1,6 @@
 package de.paulwolf.stegano.ui;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -38,10 +36,10 @@ public class DecryptUI implements ActionListener {
 	JButton browse = new JButton("Browse");
 	JButton decrypt = new JButton("Decrypt");
 	JPasswordField key = new JPasswordField("Key");
-	JTextArea plaintext = new JTextArea("Plaintext", 5, 0);
+	JTextArea plaintext = new JTextArea("Plaintext", 10, 0);
 	JScrollPane scrollpane = new JScrollPane(plaintext, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 			JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-	JTextField path = new JTextField("Image Path");
+	PlaceholderField path = new PlaceholderField("Image Path");
 	JFileChooser fileChooser = new JFileChooser();
 	JToggleButton show = new JToggleButton("Show");
 
@@ -59,31 +57,32 @@ public class DecryptUI implements ActionListener {
 		decrypt.addActionListener(this);
 		show.addActionListener(this);
 
+		path.setFont(Main.STD_FONT);
+		path.setPreferredSize(new Dimension(200, 29));
+		key.setFont(Main.STD_FONT);
+		key.setPreferredSize(new Dimension(200, 29));
+		plaintext.setFont(Main.STD_FONT);
+		browse.setFont(Main.STD_FONT);
+		show.setFont(Main.STD_FONT);
+		decrypt.setFont(Main.STD_FONT);
+
 		show.setSelected(true);
 		key.setEchoChar((char) 0);
 		plaintext.setLineWrap(true);
 
-		GridBagConstraints gbc = new GridBagConstraints();
 		panel.setLayout(new GridBagLayout());
-		gbc.gridwidth = GridBagConstraints.RELATIVE;
-		gbc.fill = GridBagConstraints.HORIZONTAL;
-		gbc.insets = new Insets(10, 10, 10, 10);
-		gbc.weightx = 1;
-		gbc.weighty = 1;
 
+		GridBagConstraints gbc = createGBC(0, 0, GridBagConstraints.HORIZONTAL, 1, 1);
 		panel.add(path, gbc);
-		gbc.gridx = 1;
+		gbc = createGBC(1, 0, GridBagConstraints.HORIZONTAL, 1, 1);
 		panel.add(browse, gbc);
-		gbc.gridx = 0;
-		gbc.gridy = 1;
+		gbc = createGBC(0, 1, GridBagConstraints.HORIZONTAL, 1, 1);
 		panel.add(key, gbc);
-		gbc.gridx = 1;
+		gbc = createGBC(1, 1, GridBagConstraints.HORIZONTAL, 1, 1);
 		panel.add(show, gbc);
-		gbc.gridy = 2;
-		gbc.gridwidth = 2;
-		gbc.gridx = 0;
+		gbc = createGBC(0, 2, GridBagConstraints.HORIZONTAL, 2, 1);
 		panel.add(decrypt, gbc);
-		gbc.gridy = 3;
+		gbc = createGBC(0, 3, GridBagConstraints.BOTH, 2, 1);
 		panel.add(scrollpane, gbc);
 
 		frame.add(panel);
@@ -101,7 +100,7 @@ public class DecryptUI implements ActionListener {
 			if (show.isSelected())
 				key.setEchoChar((char) 0);
 			else
-				key.setEchoChar('•');
+				key.setEchoChar(Main.STD_ECHO_CHAR);
 		}
 
 		if (e.getSource() == browse) {
@@ -116,55 +115,64 @@ public class DecryptUI implements ActionListener {
 
 			progress = new ProgressUI(frame, "Reading...", "Decrypting...", "Decompressing...");
 			
-			Thread decompress = new Thread(new Runnable() {
-
-				@Override
-				public void run() {
-					try {
-						plaintext.setText(GZIP.decompress(message));
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-					progress.update();
+			Thread decompress = new Thread(() -> {
+				try {
+					plaintext.setText(GZIP.decompress(message));
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
+				progress.update();
 			});
 			
-			Thread decrypt = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					MessageDigest md = null;
-					try {
-						md = MessageDigest.getInstance("SHA-256");
-					} catch (NoSuchAlgorithmException e2) {
-						e2.printStackTrace();
-					}
-					byte[] keyBytes = md.digest(new String(key.getPassword()).getBytes());
-					SecretKey key = new SecretKeySpec(keyBytes, "AES");
-					try {
-						message = EncryptionWizard.ecbDecrypt(ciphertext, key);
-					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e2) {
-						e2.printStackTrace();
-					}
-					progress.update();
-					decompress.start();
+			Thread decrypt = new Thread(() -> {
+				MessageDigest md = null;
+				try {
+					md = MessageDigest.getInstance("SHA-256");
+				} catch (NoSuchAlgorithmException e2) {
+					e2.printStackTrace();
 				}
+				assert md != null;
+				byte[] keyBytes = md.digest(new String(key.getPassword()).getBytes());
+				SecretKey key = new SecretKeySpec(keyBytes, "AES");
+				try {
+					message = EncryptionWizard.ecbDecrypt(ciphertext, key);
+				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e2) {
+					e2.printStackTrace();
+				}
+				progress.update();
+				decompress.start();
 			});
 
-			Thread read = new Thread(new Runnable() {
-				@Override
-				public void run() {
-					try {
-						ciphertext = RecoverMessage.recoverMessage(new File(path.getText()));
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-					progress.update();
-					decrypt.start();
+			Thread read = new Thread(() -> {
+				try {
+					ciphertext = RecoverMessage.recoverMessage(new File(path.getText()));
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
+				progress.update();
+				decrypt.start();
 			});
 			
 			progress.show();
 			read.start();
 		}
+	}
+
+	private static final int INGS_GAP = 10;
+
+	public static GridBagConstraints createGBC(int x, int y, int fill, int width, int height) {
+
+		GridBagConstraints gbc = new GridBagConstraints();
+		gbc.gridx = x;
+		gbc.gridy = y;
+		gbc.gridwidth = width;
+		gbc.gridheight = height;
+		gbc.fill = fill;
+
+		gbc.weightx = x == 1 ? 0.0 : 1.0;
+		gbc.weighty = fill == GridBagConstraints.HORIZONTAL ? 0 : 1;
+
+		gbc.insets = new Insets(INGS_GAP, INGS_GAP, INGS_GAP, INGS_GAP);
+		return gbc;
 	}
 }
