@@ -14,9 +14,8 @@ public class RecoverMessage {
 		BufferedImage img = ImageUtility.imageToBufferedImage(ImageIO.read(imgFile));
 		
 		int messageLength = getMessageLength(img);
-		byte[] message = extractMessage(img, messageLength);
 
-		return message;
+		return extractMessage(img, messageLength);
 	}
 
 	private static byte[] extractMessage(BufferedImage img, int messageLength) {
@@ -25,7 +24,7 @@ public class RecoverMessage {
 
 		for (int i = 0; i < messageLength * 8 / 3 + 1; i++) {
 
-			int argb = img.getRGB((i + 24) % img.getWidth(), (int) (i + 24) / img.getWidth());
+			int argb = img.getRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth());
 			messageBits.append(getLeastSignificantBit(ImageUtility.getR(argb)));
 			messageBits.append(getLeastSignificantBit(ImageUtility.getG(argb)));
 			messageBits.append(getLeastSignificantBit(ImageUtility.getB(argb)));
@@ -43,7 +42,7 @@ public class RecoverMessage {
 	private static int getMessageLength(BufferedImage img) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < 24; i++) {
-			int argb = img.getRGB(i % img.getWidth(), (int) i / img.getWidth());
+			int argb = img.getRGB(i % img.getWidth(), i / img.getWidth());
 			sb.append(getLeastSignificantBit(ImageUtility.getR(argb)));
 			sb.append(getLeastSignificantBit(ImageUtility.getG(argb)));
 			sb.append(getLeastSignificantBit(ImageUtility.getB(argb)));

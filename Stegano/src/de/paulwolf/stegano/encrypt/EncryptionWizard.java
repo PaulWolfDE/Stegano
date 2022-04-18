@@ -20,6 +20,7 @@ public class EncryptionWizard {
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
+		assert cipher != null;
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		return cipher.doFinal(plaintext);
 	}
@@ -33,6 +34,7 @@ public class EncryptionWizard {
 		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
 			e.printStackTrace();
 		}
+		assert cipher != null;
 		cipher.init(Cipher.DECRYPT_MODE, key);
 		return cipher.doFinal(ciphertext);
 	}
