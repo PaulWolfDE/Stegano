@@ -9,6 +9,7 @@ import java.awt.event.ActionListener;
 
 public class MenuUI implements ActionListener {
 
+    private static final int INGS_GAP = 10;
     JFrame frame = new JFrame(Main.VERSION_NAME);
     JPanel panel = new JPanel();
     JLabel title = new JLabel(Main.VERSION_NAME, SwingConstants.CENTER);
@@ -24,6 +25,7 @@ public class MenuUI implements ActionListener {
         about.setFont(Main.STD_FONT);
         encrypt.addActionListener(this);
         decrypt.addActionListener(this);
+        about.addActionListener(this);
 
         panel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = createGBC(0, 0, GridBagConstraints.HORIZONTAL, 1, 1);
@@ -35,26 +37,11 @@ public class MenuUI implements ActionListener {
 
         frame.add(panel);
         frame.pack();
-		frame.setMinimumSize(frame.getSize());
+        frame.setMinimumSize(frame.getSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setVisible(true);
     }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-
-        frame.setVisible(false);
-
-        if (e.getSource() == encrypt)
-            new EncryptUI();
-        if (e.getSource() == decrypt)
-            new DecryptUI();
-		if (e.getSource() == about)
-			new AboutUI();
-    }
-
-    private static final int INGS_GAP = 10;
 
     public static GridBagConstraints createGBC(int x, int y, int fill, int width, int height) {
 
@@ -70,5 +57,20 @@ public class MenuUI implements ActionListener {
 
         gbc.insets = new Insets(INGS_GAP, INGS_GAP, INGS_GAP, INGS_GAP);
         return gbc;
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+
+        if (e.getSource() == encrypt) {
+            new EncryptUI();
+            frame.setVisible(false);
+        }
+        if (e.getSource() == decrypt) {
+            new DecryptUI();
+            frame.setVisible(false);
+        }
+        if (e.getSource() == about)
+            new AboutUI();
     }
 }
