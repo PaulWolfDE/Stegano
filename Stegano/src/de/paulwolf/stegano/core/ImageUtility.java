@@ -3,8 +3,39 @@ package de.paulwolf.stegano.core;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+import static de.paulwolf.stegano.core.RecoverMessage.binStringToByte;
+import static de.paulwolf.stegano.core.RecoverMessage.byteListToArray;
 
 public class ImageUtility {
+
+	/*
+	* DEBUG
+	*/
+	static void echoBits(BufferedImage img, int start, int finish) {
+
+		StringBuilder buffer = new StringBuilder();
+
+		for (int i = start; i < finish; i++) {
+			int argb = img.getRGB(i % img.getWidth(), i / img.getHeight());
+			buffer.append(getLeastSignificantBit(getR(argb)));
+			buffer.append(getLeastSignificantBit(getG(argb)));
+			buffer.append(getLeastSignificantBit(getB(argb)));
+		}
+		String[] bitCharacter = buffer.toString().split("(?<=\\G.{8})");
+		ArrayList<Byte> message = new ArrayList<>();
+
+		for (int i = 0; i < (finish-start)*3/8; i++)
+			message.add(binStringToByte(bitCharacter[i]));
+
+		System.out.println("huhu " + Arrays.toString(byteListToArray(message)));
+	}
+
+	private static int getLeastSignificantBit(int in) {
+		return (in & 0b1);
+	}
 
 	static BufferedImage imageToBufferedImage(Image image) {
 

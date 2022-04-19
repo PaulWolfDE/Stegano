@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +26,7 @@ import javax.swing.JToggleButton;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import de.paulwolf.stegano.Main;
+import de.paulwolf.stegano.core.ImageUtility;
 import de.paulwolf.stegano.core.RecoverMessage;
 import de.paulwolf.stegano.encrypt.EncryptionWizard;
 import de.paulwolf.stegano.zip.GZIP;
@@ -135,8 +137,8 @@ public class DecryptUI implements ActionListener {
 				byte[] keyBytes = md.digest(new String(key.getPassword()).getBytes());
 				SecretKey key = new SecretKeySpec(keyBytes, "AES");
 				try {
-					message = EncryptionWizard.ecbDecrypt(ciphertext, key);
-				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e2) {
+					message = EncryptionWizard.decrypt(ciphertext, key, RecoverMessage.recoverInitializationVector(new File(path.getText())));
+				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException | InvalidAlgorithmParameterException e2) {
 					e2.printStackTrace();
 				}
 				progress.update();

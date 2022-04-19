@@ -20,7 +20,8 @@ public class PlaceholderField extends JTextField implements FocusListener {
 
     @Override
     public void focusGained(FocusEvent e) {
-        this.setText(this.content);
+        if (this.getText().equals(placeholder))
+            this.setText(this.content);
         this.setForeground(Color.DARK_GRAY);
     }
 

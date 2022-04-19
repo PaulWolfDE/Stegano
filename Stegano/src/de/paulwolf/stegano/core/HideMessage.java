@@ -4,10 +4,13 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class HideMessage {
 
-    public static void hideMessage(File source, File dest, byte[] message) throws IOException {
+    public static void hideMessage(File source, File dest, byte[] message, byte[] iv) throws IOException {
+
+        System.out.println("Iv:" + Arrays.toString(iv));
 
         BufferedImage s = ImageUtility.imageToBufferedImage(ImageIO.read(source));
         BufferedImage d = new BufferedImage(s.getWidth(), s.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -19,6 +22,7 @@ public class HideMessage {
         copyImage(s, d);
         writeLength(s, d, message.length);
         hideMessage(d, message);
+        hideInitializationVector(d, iv, message.length * 8 / 3 + 24);
 
         ImageIO.write(d, "png", dest);
     }
@@ -32,15 +36,44 @@ public class HideMessage {
 
     private static void hideMessage(BufferedImage img, byte[] message) {
 
+        System.out.println("Hidden message: " + Arrays.toString(message));
+
         String binMessage = bytesToBinaryString(message);
         StringBuilder buffer = new StringBuilder();
         buffer.append(binMessage);
         for (int i = 0; i < 3 - binMessage.length() % 3; i++)
             buffer.append('0');
 
-        for (int i = 0; i < buffer.length() / 3; i++) {
+        for (int i = 0; i < buffer.length() / 3 + 1; i++) {
 
             int argb = img.getRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth());
+            int a = ImageUtility.getA(argb);
+            int r = ImageUtility.getR(argb);
+            int g = ImageUtility.getG(argb);
+            int b = ImageUtility.getB(argb);
+            if (i * 3 < buffer.length())
+                r = ImageUtility.manipulateBit(r, buffer.charAt(i * 3) - '0');
+            if (i * 3 + 1 < buffer.length())
+                g = ImageUtility.manipulateBit(g, buffer.charAt(i * 3 + 1) - '0');
+            if (i * 3 + 2 < buffer.length())
+                b = ImageUtility.manipulateBit(b, buffer.charAt(i * 3 + 2) - '0');
+            argb = ImageUtility.getARGB(a, r, g, b);
+            img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
+        }
+    }
+
+    private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {
+
+        String binIV = bytesToBinaryString(iv);
+
+        StringBuilder buffer = new StringBuilder();
+        buffer.append(binIV);
+        for (int i = 0; i < 3 - binIV.length() % 3; i++)
+            buffer.append('0');
+
+        for (int i = 0; i < 42 + 1; i++) {
+
+            int argb = img.getRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth());
             int a = ImageUtility.getA(argb);
             int r = ImageUtility.getR(argb);
             int g = ImageUtility.getG(argb);
@@ -49,8 +82,10 @@ public class HideMessage {
             g = ImageUtility.manipulateBit(g, buffer.charAt(i * 3 + 1) - '0');
             b = ImageUtility.manipulateBit(b, buffer.charAt(i * 3 + 2) - '0');
             argb = ImageUtility.getARGB(a, r, g, b);
-            img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
+            img.setRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth(), argb);
         }
+
+        ImageUtility.echoBits(img, offset, offset + 42 + 1);
     }
 
     private static void writeLength(BufferedImage img, BufferedImage dest, int length) {
@@ -86,7 +121,7 @@ public class HideMessage {
     private static String bytesToBinaryString(byte[] in) {
 
         StringBuilder sb = new StringBuilder();
-		for (byte b : in) sb.append(intToBinByte(b));
+        for (byte b : in) sb.append(intToBinByte(b));
         return sb.toString();
     }
 

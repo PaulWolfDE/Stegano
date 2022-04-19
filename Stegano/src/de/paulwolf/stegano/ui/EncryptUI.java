@@ -16,9 +16,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 
 public class EncryptUI implements ActionListener {
 
@@ -42,6 +40,7 @@ public class EncryptUI implements ActionListener {
     ProgressUI progress;
     byte[] pt;
     byte[] ciphertext;
+    byte[] iv = new byte[16];
 
     public EncryptUI() {
 
@@ -174,12 +173,15 @@ public class EncryptUI implements ActionListener {
                 Thread hide = new Thread(() -> {
                     try {
                         System.out.println(tempURI);
-                        HideMessage.hideMessage(new File(path1.getText()), new File(tempURI), ciphertext);
+                        HideMessage.hideMessage(new File(path1.getText()), new File(tempURI), ciphertext, iv);
                     } catch (IOException e1) {
                         e1.printStackTrace();
                     }
                     progress.update();
                 });
+
+                // IV gets generated
+                (new SecureRandom()).nextBytes(iv);
 
                 Thread encrypt = new Thread(() -> {
                     MessageDigest md = null;
@@ -192,8 +194,8 @@ public class EncryptUI implements ActionListener {
 					byte[] keyBytes = md.digest(new String(key1.getPassword()).getBytes());
                     SecretKey key = new SecretKeySpec(keyBytes, "AES");
                     try {
-                        ciphertext = EncryptionWizard.ecbEncrypt(pt, key);
-                    } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException e2) {
+                        ciphertext = EncryptionWizard.encrypt(pt, key, iv);
+                    } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e2) {
                         e2.printStackTrace();
                     }
                     progress.update();
