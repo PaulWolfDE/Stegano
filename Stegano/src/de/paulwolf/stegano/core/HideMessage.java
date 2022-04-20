@@ -44,22 +44,23 @@ public class HideMessage {
         for (int i = 0; i < 3 - binMessage.length() % 3; i++)
             buffer.append('0');
 
-        for (int i = 0; i < buffer.length() / 3 + 1; i++) {
+        System.out.println(buffer.length());
+
+        for (int i = 0; i < buffer.length() / 3; i++) {
 
             int argb = img.getRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth());
             int a = ImageUtility.getA(argb);
             int r = ImageUtility.getR(argb);
             int g = ImageUtility.getG(argb);
             int b = ImageUtility.getB(argb);
-            if (i * 3 < buffer.length())
                 r = ImageUtility.manipulateBit(r, buffer.charAt(i * 3) - '0');
-            if (i * 3 + 1 < buffer.length())
                 g = ImageUtility.manipulateBit(g, buffer.charAt(i * 3 + 1) - '0');
-            if (i * 3 + 2 < buffer.length())
                 b = ImageUtility.manipulateBit(b, buffer.charAt(i * 3 + 2) - '0');
             argb = ImageUtility.getARGB(a, r, g, b);
             img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
         }
+
+        ImageUtility.echoBits(img, 24, buffer.length() / 3 + 1);
     }
 
     private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {
