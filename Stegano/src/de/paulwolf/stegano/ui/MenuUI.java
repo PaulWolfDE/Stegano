@@ -37,6 +37,7 @@ public class MenuUI implements ActionListener {
 
         frame.add(panel);
         frame.pack();
+        frame.setIconImage(Main.IMAGE);
         frame.setMinimumSize(frame.getSize());
         frame.setLocationRelativeTo(null);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

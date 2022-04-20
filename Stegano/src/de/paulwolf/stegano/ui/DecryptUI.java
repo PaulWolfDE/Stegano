@@ -89,6 +89,7 @@ public class DecryptUI implements ActionListener {
 
 		frame.add(panel);
 		frame.pack();
+		frame.setIconImage(Main.IMAGE);
 		frame.setLocationRelativeTo(null);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setVisible(true);

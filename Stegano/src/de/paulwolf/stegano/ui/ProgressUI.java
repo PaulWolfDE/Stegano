@@ -1,5 +1,7 @@
 package de.paulwolf.stegano.ui;
 
+import de.paulwolf.stegano.Main;
+
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -39,6 +41,7 @@ public class ProgressUI {
 
 		frame.add(panel);
 		frame.pack();
+		frame.setIconImage(Main.IMAGE);
 		frame.setLocationRelativeTo(parent);
 		frame.setAlwaysOnTop(true);
 		frame.setResizable(false);

@@ -1,4 +1,4 @@
-# Stegano Version 1.1.0
+# Stegano Version 1.1.1
 
 Stegano is an open-source software for steganography. In cryptography, steganography is a method of hiding information in inconspicuous files. This often has utility when cryptography is banned in totalitarian states and must be hidden that files are encrypted.
 
