@@ -165,7 +165,8 @@ public class EncryptUI implements ActionListener {
                 if (tempURI.length() > extension.length() - 1)
                     if (!tempURI.substring(tempURI.length() - extension.length() - 1)
                             .equalsIgnoreCase("." + extension)) {
-                        System.out.println(tempURI.substring(tempURI.length() - extension.length() - 1));
+                        if (Main.DEBUG)
+                            System.out.println(tempURI.substring(tempURI.length() - extension.length() - 1));
                         tempURI += "." + extension;
                     }
 
@@ -173,7 +174,8 @@ public class EncryptUI implements ActionListener {
 
                 Thread hide = new Thread(() -> {
                     try {
-                        System.out.println(tempURI);
+                        if (Main.DEBUG)
+                            System.out.println(tempURI);
                         HideMessage.hideMessage(new File(path1.getText()), new File(tempURI), ciphertext, iv);
                     } catch (IOException e1) {
                         e1.printStackTrace();

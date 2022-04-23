@@ -1,4 +1,4 @@
-# Stegano Version 1.1.2
+# Stegano Version 1.1.3
 
 Stegano is an open-source software for steganography. In cryptography, steganography is a method of hiding information in inconspicuous files. This often has utility when cryptography is banned in totalitarian states and must be hidden that files are encrypted.
 
@@ -8,7 +8,6 @@ Resulting image files are always saved in lossless PNG format. A signature in th
 
 Data is encrypted using the AES/Rijndael algorithm in GCM mode. The initialization vector for this is chosen randomly for each encryption.
 
-Releases pre 1.1.2 should not be used because of a crucial bug belonging the message authentication code (MAC) of the GCM mode.
+Releases prior version 1.1.3 should not be used because of a crucial bug belonging the message authentication code (MAC) of the GCM mode being overwritten by the initialization vector.
 
-License: GPL-3\
 Created by Paul Wolf

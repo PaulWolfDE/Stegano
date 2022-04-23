@@ -1,5 +1,7 @@
 package de.paulwolf.stegano.core;
 
+import de.paulwolf.stegano.Main;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -10,7 +12,8 @@ public class HideMessage {
 
     public static void hideMessage(File source, File dest, byte[] message, byte[] iv) throws IOException {
 
-        System.out.println("Iv:" + Arrays.toString(iv));
+        if (Main.DEBUG)
+            System.out.println("Iv:" + Arrays.toString(iv));
 
         BufferedImage s = ImageUtility.imageToBufferedImage(ImageIO.read(source));
         BufferedImage d = new BufferedImage(s.getWidth(), s.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -22,7 +25,7 @@ public class HideMessage {
         copyImage(s, d);
         writeLength(s, d, message.length);
         hideMessage(d, message);
-        hideInitializationVector(d, iv, message.length * 8 / 3 + 24);
+        hideInitializationVector(d, iv, message.length * 8 / 3 + 1 /* IV otherwise overwrites ciphertext */ + 24);
 
         ImageIO.write(d, "png", dest);
     }
@@ -55,8 +58,10 @@ public class HideMessage {
             img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
         }
 
-        System.out.println(Arrays.toString(binMessage.split("(?<=\\G.{8})")));
-        ImageUtility.echoBits(img, 24, 24 + binMessage.length() / 3+1);
+        if (Main.DEBUG) {
+            System.out.println(Arrays.toString(binMessage.split("(?<=\\G.{8})")));
+            ImageUtility.echoBits(img, 24, 24 + binMessage.length() / 3 + 1);
+        }
     }
 
     private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {

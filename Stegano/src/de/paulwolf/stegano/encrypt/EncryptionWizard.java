@@ -5,8 +5,6 @@ import javax.crypto.spec.GCMParameterSpec;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
-import java.util.Arrays;
 
 public class EncryptionWizard {
 
@@ -21,9 +19,7 @@ public class EncryptionWizard {
         }
         assert cipher != null;
         cipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
-        byte[] ciphertext = cipher.doFinal(plaintext);
-        System.out.println("CT length: " + ciphertext.length);
-        return ciphertext;
+        return cipher.doFinal(plaintext);
     }
 
     public static byte[] decrypt(byte[] ciphertext, SecretKey key, byte[] iv)

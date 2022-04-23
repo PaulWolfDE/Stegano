@@ -1,5 +1,7 @@
 package de.paulwolf.stegano.core;
 
+import de.paulwolf.stegano.Main;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -18,7 +20,7 @@ public class RecoverMessage {
 
     public static byte[] extractInitializationVector(BufferedImage img, int messageLength) {
 
-        int start = 24 + messageLength * 8 / 3, finish = 24 + messageLength * 8 / 3 + 42 + 1;
+        int start = 24 + messageLength * 8 / 3 + 1, finish = start + 42 + 1;
 
         StringBuilder buffer = new StringBuilder();
 
@@ -34,9 +36,10 @@ public class RecoverMessage {
         for (int i = 0; i < (finish - start) * 3 / 8; i++)
             message.add(binStringToByte(bitCharacter[i]));
 
-        System.out.println(Arrays.toString(byteListToArray(message)));
-        ImageUtility.echoBits(img, start, finish);
-
+        if (Main.DEBUG) {
+            System.out.println(Arrays.toString(byteListToArray(message)));
+            ImageUtility.echoBits(img, start, finish);
+        }
         return byteListToArray(message);
     }
 
@@ -62,8 +65,10 @@ public class RecoverMessage {
         }
 
         String[] bitCharacter = messageBits.toString().split("(?<=\\G.{8})");
-        System.out.println(Arrays.toString(bitCharacter));
-        ImageUtility.echoBits(img, 24, 24 + messageBits.length() / 3 +1 );
+        if (Main.DEBUG) {
+            System.out.println(Arrays.toString(bitCharacter));
+            ImageUtility.echoBits(img, 24, 24 + messageBits.length() / 3 + 1);
+        }
         ArrayList<Byte> message = new ArrayList<>();
 
         for (int i = 0; i < messageLength; i++)

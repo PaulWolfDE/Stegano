@@ -14,15 +14,7 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import javax.swing.JButton;
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JPasswordField;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
+import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import de.paulwolf.stegano.Main;
@@ -137,23 +129,39 @@ public class DecryptUI implements ActionListener {
 				assert md != null;
 				byte[] keyBytes = md.digest(new String(key.getPassword()).getBytes());
 				SecretKey key = new SecretKeySpec(keyBytes, "AES");
+				boolean success = true;
 				try {
 					message = EncryptionWizard.decrypt(ciphertext, key, RecoverMessage.recoverInitializationVector(new File(path.getText())));
-				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException | InvalidAlgorithmParameterException e2) {
+				} catch (InvalidKeyException | IllegalBlockSizeException  | InvalidAlgorithmParameterException e2) {
 					e2.printStackTrace();
+				} catch(BadPaddingException e2) {
+					success = false;
+					progress.kill();
+					JOptionPane.showMessageDialog(frame, "The entered key is incorrect!", "Invalid credentials", JOptionPane.ERROR_MESSAGE);
+				} catch(IOException e2) {
+					success = false;
+					progress.kill();
+					JOptionPane.showMessageDialog(frame, "Could not open provided file!", "Invalid file", JOptionPane.ERROR_MESSAGE);
 				}
-				progress.update();
-				decompress.start();
+				if (success) {
+					progress.update();
+					decompress.start();
+				}
 			});
 
 			Thread read = new Thread(() -> {
+				boolean success = true;
 				try {
 					ciphertext = RecoverMessage.recoverMessage(new File(path.getText()));
-				} catch (IOException e1) {
-					e1.printStackTrace();
+				} catch(IOException e2) {
+					success = false;
+					JOptionPane.showMessageDialog(frame, "Could not open provided file!", "Invalid file", JOptionPane.ERROR_MESSAGE);
+					progress.kill();
 				}
-				progress.update();
-				decrypt.start();
+				if (success) {
+					progress.update();
+					decrypt.start();
+				}
 			});
 			
 			progress.show();

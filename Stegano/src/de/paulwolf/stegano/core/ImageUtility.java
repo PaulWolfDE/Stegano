@@ -12,7 +12,7 @@ import static de.paulwolf.stegano.core.RecoverMessage.byteListToArray;
 public class ImageUtility {
 
 	/*
-	* DEBUG
+	* Function only for debugging!
 	*/
 	static void echoBits(BufferedImage img, int start, int finish) {
 
@@ -30,7 +30,7 @@ public class ImageUtility {
 		for (int i = 0; i < (finish-start)*3/8; i++)
 			message.add(binStringToByte(bitCharacter[i]));
 
-		System.out.println("huhu " + Arrays.toString(byteListToArray(message)));
+		System.out.println(Arrays.toString(byteListToArray(message)));
 	}
 
 	private static int getLeastSignificantBit(int in) {

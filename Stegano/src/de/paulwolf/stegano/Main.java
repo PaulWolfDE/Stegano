@@ -11,6 +11,7 @@ public class Main {
 
 	public static final String VERSION_NAME = "Stegano";
 	public static final char STD_ECHO_CHAR = '*';
+	public static final boolean DEBUG = false;
 	public static Font STD_FONT;
 	public static Image IMAGE;
 	
@@ -23,7 +24,6 @@ public class Main {
 		}
 
 		String osName = System.getProperty("os.name");
-		System.out.println(osName);
 		if (osName.toLowerCase().contains("linux"))
 			STD_FONT = new Font("Bitstream Charter", Font.PLAIN, 15);
 		else if (osName.toLowerCase().contains("windows"))
