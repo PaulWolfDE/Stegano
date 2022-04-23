@@ -36,31 +36,27 @@ public class HideMessage {
 
     private static void hideMessage(BufferedImage img, byte[] message) {
 
-        System.out.println("Hidden message: " + Arrays.toString(message));
-
         String binMessage = bytesToBinaryString(message);
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(binMessage);
-        for (int i = 0; i < 3 - binMessage.length() % 3; i++)
-            buffer.append('0');
 
-        System.out.println(buffer.length());
-
-        for (int i = 0; i < buffer.length() / 3; i++) {
+        for (int i = 0; i < binMessage.length() / 3 + 1; i++) {
 
             int argb = img.getRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth());
             int a = ImageUtility.getA(argb);
             int r = ImageUtility.getR(argb);
             int g = ImageUtility.getG(argb);
             int b = ImageUtility.getB(argb);
-                r = ImageUtility.manipulateBit(r, buffer.charAt(i * 3) - '0');
-                g = ImageUtility.manipulateBit(g, buffer.charAt(i * 3 + 1) - '0');
-                b = ImageUtility.manipulateBit(b, buffer.charAt(i * 3 + 2) - '0');
+            if (i * 3 < binMessage.length())
+                r = ImageUtility.manipulateBit(r, binMessage.charAt(i * 3) - '0');
+            if (i * 3 + 1 < binMessage.length())
+                g = ImageUtility.manipulateBit(g, binMessage.charAt(i * 3 + 1) - '0');
+            if (i * 3 + 2 < binMessage.length())
+                b = ImageUtility.manipulateBit(b, binMessage.charAt(i * 3 + 2) - '0');
             argb = ImageUtility.getARGB(a, r, g, b);
             img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
         }
 
-        ImageUtility.echoBits(img, 24, buffer.length() / 3 + 1);
+        System.out.println(Arrays.toString(binMessage.split("(?<=\\G.{8})")));
+        ImageUtility.echoBits(img, 24, 24 + binMessage.length() / 3+1);
     }
 
     private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {
@@ -85,8 +81,6 @@ public class HideMessage {
             argb = ImageUtility.getARGB(a, r, g, b);
             img.setRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth(), argb);
         }
-
-        ImageUtility.echoBits(img, offset, offset + 42 + 1);
     }
 
     private static void writeLength(BufferedImage img, BufferedImage dest, int length) {

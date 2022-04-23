@@ -50,11 +50,8 @@ public class RecoverMessage {
     private static byte[] extractMessage(BufferedImage img, int messageLength) {
 
         StringBuilder messageBits = new StringBuilder();
-        System.out.println(messageLength);
-
 
         for (int i = 0; i < messageLength * 8 / 3 + 1; i++) {
-
             int argb = img.getRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth());
             if (i * 3 < messageLength * 8)
                 messageBits.append(getLeastSignificantBit(ImageUtility.getR(argb)));
@@ -64,16 +61,13 @@ public class RecoverMessage {
                 messageBits.append(getLeastSignificantBit(ImageUtility.getB(argb)));
         }
 
-        System.out.println(messageBits.length());
         String[] bitCharacter = messageBits.toString().split("(?<=\\G.{8})");
+        System.out.println(Arrays.toString(bitCharacter));
+        ImageUtility.echoBits(img, 24, 24 + messageBits.length() / 3 +1 );
         ArrayList<Byte> message = new ArrayList<>();
-
-        ImageUtility.echoBits(img, 24, messageLength*8/3+1+24);
 
         for (int i = 0; i < messageLength; i++)
             message.add(binStringToByte(bitCharacter[i]));
-
-        System.out.println("Recovered message: " + Arrays.toString(byteListToArray(message)));
 
         return byteListToArray(message);
     }
