@@ -1,7 +1,5 @@
 package de.paulwolf.stegano.core;
 
-import de.paulwolf.stegano.Main;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -11,9 +9,6 @@ import java.util.Arrays;
 public class HideMessage {
 
     public static void hideMessage(File source, File dest, byte[] message, byte[] iv) throws IOException {
-
-        if (Main.DEBUG)
-            System.out.println("Iv:" + Arrays.toString(iv));
 
         BufferedImage s = ImageUtility.imageToBufferedImage(ImageIO.read(source));
         BufferedImage d = new BufferedImage(s.getWidth(), s.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -58,10 +53,7 @@ public class HideMessage {
             img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
         }
 
-        if (Main.DEBUG) {
-            System.out.println(Arrays.toString(binMessage.split("(?<=\\G.{8})")));
-            ImageUtility.echoBits(img, 24, 24 + binMessage.length() / 3 + 1);
-        }
+        assert Arrays.equals(message, RecoverMessage.extractMessage(img, message.length)) : "Program wrote or read wrong message!";
     }
 
     private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {
@@ -86,6 +78,8 @@ public class HideMessage {
             argb = ImageUtility.getARGB(a, r, g, b);
             img.setRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth(), argb);
         }
+
+        assert Arrays.equals(iv, RecoverMessage.extractInitializationVector(img, offset - 24)) : "Program wrote or read wrong IV!";
     }
 
     private static void writeLength(BufferedImage img, BufferedImage dest, int length) {
@@ -116,6 +110,8 @@ public class HideMessage {
             argb = ImageUtility.getARGB(a, r, g, b);
             dest.setRGB(i % img.getWidth(), i / img.getWidth(), argb);
         }
+
+        assert length == RecoverMessage.getMessageLength(img) : "Program wrote or read wrong length!";
     }
 
     private static String bytesToBinaryString(byte[] in) {

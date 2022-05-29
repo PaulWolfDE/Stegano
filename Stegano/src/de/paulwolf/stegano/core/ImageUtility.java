@@ -4,17 +4,13 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import static de.paulwolf.stegano.core.RecoverMessage.binStringToByte;
 import static de.paulwolf.stegano.core.RecoverMessage.byteListToArray;
 
 public class ImageUtility {
 
-	/*
-	* Function only for debugging!
-	*/
-	static void echoBits(BufferedImage img, int start, int finish) {
+	static byte[] readBits(BufferedImage img, int start, int finish) {
 
 		StringBuilder buffer = new StringBuilder();
 
@@ -30,7 +26,7 @@ public class ImageUtility {
 		for (int i = 0; i < (finish-start)*3/8; i++)
 			message.add(binStringToByte(bitCharacter[i]));
 
-		System.out.println(Arrays.toString(byteListToArray(message)));
+		return byteListToArray(message);
 	}
 
 	private static int getLeastSignificantBit(int in) {

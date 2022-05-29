@@ -20,6 +20,7 @@ import java.security.*;
 
 public class EncryptUI implements ActionListener {
 
+    private static final int INGS_GAP = 10;
     JFrame frame = new JFrame(Main.VERSION_NAME);
     JPanel panel = new JPanel();
     JButton browse1 = new JButton("Browse");
@@ -35,7 +36,6 @@ public class EncryptUI implements ActionListener {
     PlaceholderField path2 = new PlaceholderField("Destination Path");
     JFileChooser fileChooser = new JFileChooser();
     JFileChooser secondChooser = new JFileChooser();
-
     String tempURI;
     ProgressUI progress;
     byte[] pt;
@@ -105,6 +105,22 @@ public class EncryptUI implements ActionListener {
         frame.setVisible(true);
     }
 
+    public static GridBagConstraints createGBC(int x, int y, int fill, int width, int height) {
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = x;
+        gbc.gridy = y;
+        gbc.gridwidth = width;
+        gbc.gridheight = height;
+        gbc.fill = fill;
+
+        gbc.weightx = x == 2 ? 0.0 : 1.0;
+        gbc.weighty = fill == GridBagConstraints.HORIZONTAL ? 0 : 1;
+
+        gbc.insets = new Insets(INGS_GAP, INGS_GAP, INGS_GAP, INGS_GAP);
+        return gbc;
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
 
@@ -133,8 +149,7 @@ public class EncryptUI implements ActionListener {
             if (!show.isSelected()) {
                 key1.setEchoChar(Main.STD_ECHO_CHAR);
                 key2.setEchoChar(Main.STD_ECHO_CHAR);
-            }
-            else {
+            } else {
                 key1.setEchoChar((char) 0);
                 key2.setEchoChar((char) 0);
             }
@@ -162,13 +177,13 @@ public class EncryptUI implements ActionListener {
 
                 tempURI = path2.getText();
 
-                if (tempURI.length() > extension.length() - 1)
+                if (tempURI.length() > extension.length() + 1) {
                     if (!tempURI.substring(tempURI.length() - extension.length() - 1)
-                            .equalsIgnoreCase("." + extension)) {
-                        if (Main.DEBUG)
-                            System.out.println(tempURI.substring(tempURI.length() - extension.length() - 1));
+                            .equalsIgnoreCase("." + extension))
                         tempURI += "." + extension;
-                    }
+                } else {
+                    tempURI += "." + extension;
+                }
 
                 progress.show();
 
@@ -193,8 +208,8 @@ public class EncryptUI implements ActionListener {
                     } catch (NoSuchAlgorithmException e2) {
                         e2.printStackTrace();
                     }
-					assert md != null;
-					byte[] keyBytes = md.digest(new String(key1.getPassword()).getBytes());
+                    assert md != null;
+                    byte[] keyBytes = md.digest(new String(key1.getPassword()).getBytes());
                     SecretKey key = new SecretKeySpec(keyBytes, "AES");
                     try {
                         ciphertext = EncryptionWizard.encrypt(pt, key, iv);
@@ -218,23 +233,5 @@ public class EncryptUI implements ActionListener {
                 zip.start();
             }
         }
-    }
-
-    private static final int INGS_GAP = 10;
-
-    public static GridBagConstraints createGBC(int x, int y, int fill, int width, int height) {
-
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = x;
-        gbc.gridy = y;
-        gbc.gridwidth = width;
-        gbc.gridheight = height;
-        gbc.fill = fill;
-
-        gbc.weightx = x == 2 ? 0.0 : 1.0;
-        gbc.weighty = fill == GridBagConstraints.HORIZONTAL ? 0 : 1;
-
-        gbc.insets = new Insets(INGS_GAP, INGS_GAP, INGS_GAP, INGS_GAP);
-        return gbc;
     }
 }

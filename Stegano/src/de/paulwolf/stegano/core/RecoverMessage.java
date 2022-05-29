@@ -36,10 +36,6 @@ public class RecoverMessage {
         for (int i = 0; i < (finish - start) * 3 / 8; i++)
             message.add(binStringToByte(bitCharacter[i]));
 
-        if (Main.DEBUG) {
-            System.out.println(Arrays.toString(byteListToArray(message)));
-            ImageUtility.echoBits(img, start, finish);
-        }
         return byteListToArray(message);
     }
 
@@ -50,7 +46,7 @@ public class RecoverMessage {
         return extractMessage(img, messageLength);
     }
 
-    private static byte[] extractMessage(BufferedImage img, int messageLength) {
+    protected static byte[] extractMessage(BufferedImage img, int messageLength) {
 
         StringBuilder messageBits = new StringBuilder();
 
@@ -65,10 +61,6 @@ public class RecoverMessage {
         }
 
         String[] bitCharacter = messageBits.toString().split("(?<=\\G.{8})");
-        if (Main.DEBUG) {
-            System.out.println(Arrays.toString(bitCharacter));
-            ImageUtility.echoBits(img, 24, 24 + messageBits.length() / 3 + 1);
-        }
         ArrayList<Byte> message = new ArrayList<>();
 
         for (int i = 0; i < messageLength; i++)
@@ -77,7 +69,7 @@ public class RecoverMessage {
         return byteListToArray(message);
     }
 
-    private static int getMessageLength(BufferedImage img) {
+    protected static int getMessageLength(BufferedImage img) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 24; i++) {
             int argb = img.getRGB(i % img.getWidth(), i / img.getWidth());
