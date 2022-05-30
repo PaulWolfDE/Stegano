@@ -10,26 +10,19 @@ public class HideMessage {
 
     public static void hideMessage(File source, File dest, byte[] message, byte[] iv) throws IOException {
 
-        BufferedImage s = ImageUtility.imageToBufferedImage(ImageIO.read(source));
-        BufferedImage d = new BufferedImage(s.getWidth(), s.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage img = ImageUtility.imageToBufferedImage(ImageIO.read(source));
 
-        if (message.length > (s.getWidth() * s.getHeight() * 3 - 24) / 8) {
+        if (message.length > ((img.getWidth() * img.getHeight() * 3 /* Max bits */ - 129 /* IV */ - 72 /* Length */) / 8 /* Bits to bytes */))
             throw new IllegalArgumentException("Message length too long!");
-        }
 
-        copyImage(s, d);
-        writeLength(s, d, message.length);
-        hideMessage(d, message);
-        hideInitializationVector(d, iv, message.length * 8 / 3 + 1 /* IV otherwise overwrites ciphertext */ + 24);
+        writeLength(img, message.length);
+        assert message.length == RecoverMessage.getMessageLength(img) : "Program wrote or read wrong length!";
+        hideMessage(img, message);
+        assert Arrays.equals(message, RecoverMessage.extractMessage(img, message.length)) : "Program wrote or read wrong message!";
+        hideInitializationVector(img, iv, message.length);
+        assert Arrays.equals(iv, RecoverMessage.extractInitializationVector(img, message.length)) : "Program wrote or read wrong IV!";
 
-        ImageIO.write(d, "png", dest);
-    }
-
-    private static void copyImage(BufferedImage img, BufferedImage dest) {
-
-        for (int i = 0; i < img.getWidth(); i++)
-            for (int j = 0; j < img.getHeight(); j++)
-                dest.setRGB(i, j, img.getRGB(i, j));
+        ImageIO.write(img, "png", dest);
     }
 
     private static void hideMessage(BufferedImage img, byte[] message) {
@@ -52,11 +45,11 @@ public class HideMessage {
             argb = ImageUtility.getARGB(a, r, g, b);
             img.setRGB((i + 24) % img.getWidth(), (i + 24) / img.getWidth(), argb);
         }
-
-        assert Arrays.equals(message, RecoverMessage.extractMessage(img, message.length)) : "Program wrote or read wrong message!";
     }
 
-    private static void hideInitializationVector(BufferedImage img, byte[] iv, int offset) {
+    private static void hideInitializationVector(BufferedImage img, byte[] iv, int messageLength) {
+
+        int start = 24 + messageLength * 8 / 3 + 1, finish = start + 42 + 1;
 
         String binIV = bytesToBinaryString(iv);
 
@@ -65,24 +58,21 @@ public class HideMessage {
         for (int i = 0; i < 3 - binIV.length() % 3; i++)
             buffer.append('0');
 
-        for (int i = 0; i < 42 + 1; i++) {
-
-            int argb = img.getRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth());
+        for (int i = start; i < finish; i++) {
+            int argb = img.getRGB(i % img.getWidth(), i / img.getWidth());
             int a = ImageUtility.getA(argb);
             int r = ImageUtility.getR(argb);
             int g = ImageUtility.getG(argb);
             int b = ImageUtility.getB(argb);
-            r = ImageUtility.manipulateBit(r, buffer.charAt(i * 3) - '0');
-            g = ImageUtility.manipulateBit(g, buffer.charAt(i * 3 + 1) - '0');
-            b = ImageUtility.manipulateBit(b, buffer.charAt(i * 3 + 2) - '0');
+            r = ImageUtility.manipulateBit(r, buffer.charAt((i - start) * 3) - '0');
+            g = ImageUtility.manipulateBit(g, buffer.charAt((i - start) * 3 + 1) - '0');
+            b = ImageUtility.manipulateBit(b, buffer.charAt((i - start) * 3 + 2) - '0');
             argb = ImageUtility.getARGB(a, r, g, b);
-            img.setRGB((i + offset) % img.getWidth(), (i + offset) / img.getWidth(), argb);
+            img.setRGB(i % img.getWidth(), i / img.getWidth(), argb);
         }
-
-        assert Arrays.equals(iv, RecoverMessage.extractInitializationVector(img, offset - 24)) : "Program wrote or read wrong IV!";
     }
 
-    private static void writeLength(BufferedImage img, BufferedImage dest, int length) {
+    private static void writeLength(BufferedImage img, int length) {
 
         String binLength = Integer.toBinaryString(length);
         StringBuilder buffer = new StringBuilder();
@@ -108,10 +98,8 @@ public class HideMessage {
                         Integer.parseInt(String.valueOf((buffer.charAt((buffer.length() / 3 - 24 + i) * 3 + 2)))));
             }
             argb = ImageUtility.getARGB(a, r, g, b);
-            dest.setRGB(i % img.getWidth(), i / img.getWidth(), argb);
+            img.setRGB(i % img.getWidth(), i / img.getWidth(), argb);
         }
-
-        assert length == RecoverMessage.getMessageLength(img) : "Program wrote or read wrong length!";
     }
 
     private static String bytesToBinaryString(byte[] in) {
